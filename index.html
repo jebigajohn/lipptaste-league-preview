@@ -41,6 +41,8 @@
     padding: 0 16px 64px;
   }
 
+  .nowrap { white-space: nowrap; }
+
   .visually-hidden {
     position: absolute; width: 1px; height: 1px; overflow: hidden;
     clip: rect(0 0 0 0); white-space: nowrap;
@@ -71,10 +73,27 @@
   .matchday { margin-top: 16px; }
   .matchday p { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
   .matchday p span { font-weight: 400; opacity: 0.65; }
+  .matchday > p:first-child { display: flex; align-items: baseline; gap: 6px; }
+  .matchday p .to-current {
+    margin-left: auto; padding: 0; white-space: nowrap;
+    background: none; border: 0; border-bottom: 1px solid currentColor;
+    color: var(--paper); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
   .season-bar { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin: 0; padding: 0; list-style: none; }
-  .season-bar li { height: 6px; background: rgba(255, 255, 255, 0.22); }
-  .season-bar li.played { background: var(--paper); }
-  .season-bar li.current { background: var(--gold); }
+  .season-bar button {
+    width: 100%; height: 44px; padding: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: transparent; color: rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 0;
+    font: inherit; line-height: 1;
+  }
+  .season-bar button b { font-size: 15px; font-weight: 800; font-stretch: 75%; font-variant-numeric: tabular-nums; }
+  .season-bar button small { margin-top: 3px; font-size: 9px; }
+  .season-bar button.played { background: rgba(255, 255, 255, 0.16); border-color: transparent; color: var(--paper); cursor: pointer; }
+  .season-bar button.current { box-shadow: inset 0 -3px 0 var(--gold); }
+  .season-bar button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+  .season-bar button:focus-visible, .matchday .to-current:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .matchday-result { margin: 12px 0 0; font-size: 15px; font-weight: 600; }
 
   /* Abschnitte */
   .block { margin-top: 40px; }
@@ -176,16 +195,17 @@
   .points small { font-size: 12px; color: var(--muted); }
 
   .breakdown {
+    width: calc(100% - 72px);
     margin: 0 0 14px 64px;
-    padding: 0 8px 0 0;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 4px 12px;
+    border-collapse: collapse;
     font-size: 14px;
+    font-variant-numeric: tabular-nums;
   }
   .breakdown[hidden] { display: none; }
-  .breakdown dt { color: var(--muted); }
-  .breakdown dd { margin: 0; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .breakdown th, .breakdown td { padding: 2px 0 2px 12px; text-align: right; }
+  .breakdown thead th { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .breakdown tbody th { padding-left: 0; text-align: left; font-weight: 400; color: var(--muted); }
+  .breakdown td { font-weight: 700; }
 
   .legend { margin: 0; padding: 10px 12px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
 
@@ -201,15 +221,81 @@
   /* Regelwerk */
   .rule { padding: 16px 0; border-top: 1px solid var(--rule); }
   .rule:first-child { border-top: 1px solid var(--ink); }
+  .rule-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .rule h3 { margin: 0; font-size: 18px; font-weight: 700; }
+  .info, .info-inline {
+    display: inline-grid; place-items: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
+    font: inherit; font-size: 13px; font-weight: 800; line-height: 1;
+  }
+  .info { position: relative; flex: none; cursor: pointer; }
+  .info::after { content: ''; position: absolute; inset: -10px; }
+  .info[aria-expanded="true"] { background: var(--ink); color: var(--paper); }
+  .info:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .info-inline { width: 18px; height: 18px; font-size: 11px; border-width: 1.5px; vertical-align: 1px; }
+  .rule .explain { margin: 8px 0 0; padding: 10px 12px; background: var(--soft); color: var(--ink); font-size: 14px; }
+  .explain[hidden] { display: none; }
   .tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0; padding: 0; list-style: none; }
-  .tiers li { padding: 6px 4px; background: var(--soft); text-align: center; font-size: 13px; line-height: 1.2; }
-  .tiers li:last-child { background: var(--ink); color: var(--paper); }
+  .tiers li { padding: 6px 4px; text-align: center; font-size: 13px; line-height: 1.2; }
+  .tiers .tier-1 { background: #e8e8e8; color: var(--ink); }
+  .tiers .tier-2 { background: #bdbdbd; color: var(--ink); }
+  .tiers .tier-3 { background: #6b6b6b; color: var(--paper); }
+  .tiers .tier-4 { background: var(--ink); color: var(--paper); }
   .tiers b { display: block; font-size: 16px; font-stretch: 75%; font-weight: 800; }
   .rule p { margin: 0; color: var(--muted); font-size: 15px; }
 
   /* Saisonverlauf */
-  .history-scroll { overflow-x: auto; border-top: 1px solid var(--ink); }
+  #chart { border-top: 1px solid var(--ink); padding-top: 8px; }
+  .chart-plot { position: relative; }
+  .chart-plot svg { display: block; overflow: visible; font-family: var(--font); }
+  .chart-plot .grid { stroke: var(--rule); stroke-width: 1; }
+  .chart-plot .axis { font-size: 12px; fill: var(--muted); }
+  .chart-plot .month { fill: var(--ink); font-variant-numeric: tabular-nums; }
+  .chart-plot .month.selected { font-weight: 800; }
+  .chart-plot .sel-band { fill: var(--soft); }
+  .chart-plot .col-hit { fill: transparent; cursor: pointer; }
+  .chart-plot .pt-hit { fill: transparent; cursor: pointer; }
+  .series path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .series .dot { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+  .series .end { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+  .series .end.gold { stroke: var(--gold); stroke-width: 3; }
+  .series .end.silver { stroke: var(--silver); stroke-width: 3; }
+  .series .end-label { font-size: 10px; font-weight: 800; fill: var(--ink); pointer-events: none; }
+  .series.is-dim path { stroke: #cfcfcf; stroke-width: 1.5; }
+  .series.is-dim .dot { fill: #cfcfcf; }
+  .series.is-dim .end { stroke: #cfcfcf; }
+  .series.is-dim .end-label { fill: #9a9a9a; }
+  .series.is-hl path { stroke-width: 3.5; }
+  .chart-tip {
+    position: absolute; z-index: 2;
+    display: grid; gap: 1px;
+    padding: 8px 10px;
+    background: var(--ink); color: var(--paper);
+    font-size: 13px; line-height: 1.3; white-space: nowrap;
+    pointer-events: none;
+  }
+  .chart-tip[hidden] { display: none; }
+  .chart-tip span { opacity: 0.8; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+  .chart-legend button {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 4px; min-height: 32px;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 999px;
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .chart-legend button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+  .chart-legend button[aria-pressed="true"] .chip { border-color: var(--paper); }
+  .chart-legend button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .chart-legend .chip {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: grid; place-items: center;
+    border: 2px solid var(--ink); font-size: 9px; font-weight: 800;
+  }
+  .history-details { margin-top: 16px; }
+  .history-details summary { cursor: pointer; font-size: 14px; font-weight: 600; padding: 6px 0; }
+  .history-scroll { overflow-x: auto; border-top: 1px solid var(--ink); margin-top: 8px; }
   .history { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
   .history th, .history td { padding: 8px 6px; border-bottom: 1px solid var(--rule); text-align: center; white-space: nowrap; }
   .history th:first-child { text-align: left; position: sticky; left: 0; background: var(--paper); font-weight: 700; }
@@ -279,13 +365,18 @@
 
         <section class="block" aria-labelledby="rules-heading">
           <h2 id="rules-heading">So holt ihr Punkte</h2>
-          <p class="lead">Jeden Monat gibt es bis zu 100 Punkte: höchstens 20 pro Disziplin.</p>
+          <p class="lead">Jeden Monat gibt es bis zu 100 Punkte: höchstens 20 pro Disziplin. Tippe <span class="nowrap">auf <span class="info-inline" aria-hidden="true">i</span>,</span> um zu sehen, was gemessen wird.</p>
           <div id="rules"></div>
         </section>
 
         <section class="block" aria-labelledby="history-heading">
           <h2 id="history-heading">Saisonverlauf</h2>
-          <div class="history-scroll"><table class="history" id="history"></table></div>
+          <p class="lead">Wer stand nach welchem Spieltag auf welchem Platz? Tippe auf einen Standort, um seinen Weg hervorzuheben.</p>
+          <div id="chart"></div>
+          <details class="history-details" id="history-details">
+            <summary>Punkte je Spieltag als Tabelle</summary>
+            <div class="history-scroll"><table class="history" id="history"></table></div>
+          </details>
         </section>
       </div>
     </main>
@@ -295,7 +386,7 @@ window.google = { script: { run: (function () {
   var api = {
     withSuccessHandler: function (f) { ok = f; return api; },
     withFailureHandler: function (f) { fail = f; return api; },
-    getLeague: function (pw) { setTimeout(function () { ok(pw === 'liga2027' ? { ok: true, league: {"currentMonth":3,"currentMonthName":"März","maxPointsPerMonth":100,"disciplines":[{"key":"produktivitaet","label":"Produktivität","unit":"€/Std.","tiers":[{"min":70,"points":5},{"min":75,"points":10},{"min":80,"points":15},{"min":85,"points":20}]},{"key":"bon","label":"Durchschnittsbon","unit":"€","tiers":[{"min":6.3,"points":5},{"min":6.45,"points":10},{"min":6.6,"points":15},{"min":6.75,"points":20}]},{"key":"mystery","label":"Mystery Check","unit":"%","tiers":[{"min":80,"points":5},{"min":85,"points":10},{"min":90,"points":15},{"min":95,"points":20}]},{"key":"systemcheck","label":"Systemcheck","unit":"%","tiers":[{"min":80,"points":5},{"min":85,"points":10},{"min":90,"points":15},{"min":95,"points":20}]},{"key":"google","label":"Google-Bewertung","unit":"Sterne","tiers":[{"min":4.6,"points":5},{"min":4.7,"points":10},{"min":4.8,"points":15},{"min":4.9,"points":20}]}],"teams":[{"id":"MS","name":"Münster","logoUrl":"","months":[{"month":1,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15}},{"month":2,"points":75,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":15}},{"month":3,"points":85,"breakdown":{"produktivitaet":20,"bon":15,"mystery":20,"systemcheck":15,"google":15}}],"totalsByDiscipline":{"produktivitaet":55,"bon":50,"mystery":50,"systemcheck":50,"google":45},"total":250,"rank":1,"movement":1,"monthWins":1,"currentMonthPoints":85,"isCurrentMonthWinner":false,"medal":"gold"},{"id":"HH-ALT","name":"Hamburg Altona","logoUrl":"","months":[{"month":1,"points":100,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":20,"google":20}},{"month":2,"points":70,"breakdown":{"produktivitaet":5,"bon":5,"mystery":20,"systemcheck":20,"google":20}},{"month":3,"points":60,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":20}}],"totalsByDiscipline":{"produktivitaet":35,"bon":35,"mystery":50,"systemcheck":50,"google":60},"total":230,"rank":2,"movement":-1,"monthWins":1,"currentMonthPoints":60,"isCurrentMonthWinner":false,"medal":"silver"},{"id":"BI","name":"Bielefeld","logoUrl":"","months":[{"month":1,"points":55,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":15,"google":10}},{"month":2,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":10}},{"month":3,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15}}],"totalsByDiscipline":{"produktivitaet":45,"bon":45,"mystery":40,"systemcheck":50,"google":35},"total":215,"rank":3,"movement":0,"monthWins":1,"currentMonthPoints":90,"isCurrentMonthWinner":true,"medal":null},{"id":"HH-DT","name":"Hamburg Dammtor","logoUrl":"","months":[{"month":1,"points":25,"breakdown":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5}},{"month":2,"points":40,"breakdown":{"produktivitaet":10,"bon":10,"mystery":5,"systemcheck":10,"google":5}},{"month":3,"points":65,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":10,"google":10}}],"totalsByDiscipline":{"produktivitaet":30,"bon":30,"mystery":25,"systemcheck":25,"google":20},"total":130,"rank":4,"movement":0,"monthWins":0,"currentMonthPoints":65,"isCurrentMonthWinner":false,"medal":null},{"id":"HH-HBF","name":"Hamburg HBF","logoUrl":"","months":[{"month":1,"points":5,"breakdown":{"produktivitaet":0,"bon":0,"mystery":0,"systemcheck":5,"google":0}},{"month":2,"points":25,"breakdown":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5}},{"month":3,"points":40,"breakdown":{"produktivitaet":10,"bon":10,"mystery":5,"systemcheck":10,"google":5}}],"totalsByDiscipline":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":20,"google":10},"total":70,"rank":5,"movement":0,"monthWins":0,"currentMonthPoints":40,"isCurrentMonthWinner":false,"medal":null}],"season":"2027","logoUrl":"","tips":{"produktivitaet":"Schichten eng am Gästeaufkommen planen und Leerlauf für Vorbereitung nutzen.","bon":"Getränk oder Topping aktiv anbieten – jede Ergänzung zählt.","mystery":"Freundliche Begrüßung, saubere Theke, Standards jeden Tag gleich leben.","systemcheck":"Checklisten täglich abarbeiten, Hygiene und Dokumentation lückenlos halten.","google":"Zufriedene Gäste freundlich um eine Bewertung bitten."},"prizes":null} } : { ok: false }); }, 250); }
+    getLeague: function (pw) { setTimeout(function () { ok(pw === 'liga2027' ? { ok: true, league: {"currentMonth":6,"currentMonthName":"Juni","maxPointsPerMonth":100,"disciplines":[{"key":"produktivitaet","label":"Produktivität","unit":"€/Std.","tiers":[{"min":70,"points":5},{"min":75,"points":10},{"min":80,"points":15},{"min":85,"points":20}]},{"key":"bon","label":"Durchschnittsbon","unit":"€","tiers":[{"min":6.3,"points":5},{"min":6.45,"points":10},{"min":6.6,"points":15},{"min":6.75,"points":20}]},{"key":"mystery","label":"Mystery Check","unit":"%","tiers":[{"min":80,"points":5},{"min":85,"points":10},{"min":90,"points":15},{"min":95,"points":20}]},{"key":"systemcheck","label":"Systemcheck","unit":"%","tiers":[{"min":80,"points":5},{"min":85,"points":10},{"min":90,"points":15},{"min":95,"points":20}]},{"key":"google","label":"Google-Bewertung","unit":"Sterne","tiers":[{"min":4.6,"points":5},{"min":4.7,"points":10},{"min":4.8,"points":15},{"min":4.9,"points":20}]}],"teams":[{"id":"HH-ALT","name":"Hamburg Altona","logoUrl":"","months":[{"month":1,"points":100,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":20,"google":20}},{"month":2,"points":70,"breakdown":{"produktivitaet":5,"bon":5,"mystery":20,"systemcheck":20,"google":20}},{"month":3,"points":60,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":20}},{"month":4,"points":75,"breakdown":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":20}},{"month":5,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":15,"google":20}},{"month":6,"points":95,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":20}}],"totalsByDiscipline":{"produktivitaet":90,"bon":90,"mystery":90,"systemcheck":100,"google":120},"total":490,"rank":1,"movement":1,"monthWins":3,"currentMonthPoints":95,"isCurrentMonthWinner":true,"medal":"gold"},{"id":"BI","name":"Bielefeld","logoUrl":"","months":[{"month":1,"points":55,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":15,"google":10}},{"month":2,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":10}},{"month":3,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15}},{"month":4,"points":95,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":20,"google":15}},{"month":5,"points":90,"breakdown":{"produktivitaet":20,"bon":15,"mystery":20,"systemcheck":20,"google":15}},{"month":6,"points":80,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":20,"google":15}}],"totalsByDiscipline":{"produktivitaet":100,"bon":95,"mystery":95,"systemcheck":110,"google":80},"total":480,"rank":2,"movement":-1,"monthWins":3,"currentMonthPoints":80,"isCurrentMonthWinner":false,"medal":"silver"},{"id":"MS","name":"Münster","logoUrl":"","months":[{"month":1,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15}},{"month":2,"points":75,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":15}},{"month":3,"points":85,"breakdown":{"produktivitaet":20,"bon":15,"mystery":20,"systemcheck":15,"google":15}},{"month":4,"points":55,"breakdown":{"produktivitaet":10,"bon":5,"mystery":20,"systemcheck":10,"google":10}},{"month":5,"points":50,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":10}},{"month":6,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":15}}],"totalsByDiscipline":{"produktivitaet":90,"bon":80,"mystery":90,"systemcheck":85,"google":80},"total":425,"rank":3,"movement":0,"monthWins":1,"currentMonthPoints":70,"isCurrentMonthWinner":false,"medal":null},{"id":"HH-DT","name":"Hamburg Dammtor","logoUrl":"","months":[{"month":1,"points":25,"breakdown":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5}},{"month":2,"points":40,"breakdown":{"produktivitaet":10,"bon":10,"mystery":5,"systemcheck":10,"google":5}},{"month":3,"points":65,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":10,"google":10}},{"month":4,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":10}},{"month":5,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":15,"google":15}},{"month":6,"points":75,"breakdown":{"produktivitaet":15,"bon":10,"mystery":20,"systemcheck":15,"google":15}}],"totalsByDiscipline":{"produktivitaet":80,"bon":75,"mystery":80,"systemcheck":70,"google":60},"total":365,"rank":4,"movement":0,"monthWins":1,"currentMonthPoints":75,"isCurrentMonthWinner":false,"medal":null},{"id":"HH-HBF","name":"Hamburg HBF","logoUrl":"","months":[{"month":1,"points":5,"breakdown":{"produktivitaet":0,"bon":0,"mystery":0,"systemcheck":5,"google":0}},{"month":2,"points":25,"breakdown":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5}},{"month":3,"points":40,"breakdown":{"produktivitaet":10,"bon":10,"mystery":5,"systemcheck":10,"google":5}},{"month":4,"points":45,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":5}},{"month":5,"points":65,"breakdown":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":10}},{"month":6,"points":80,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":15,"google":10}}],"totalsByDiscipline":{"produktivitaet":60,"bon":60,"mystery":45,"systemcheck":60,"google":35},"total":260,"rank":5,"movement":0,"monthWins":0,"currentMonthPoints":80,"isCurrentMonthWinner":false,"medal":null}],"teamOrder":["MS","BI","HH-ALT","HH-DT","HH-HBF"],"matchdays":[{"month":1,"monthName":"Januar","winners":["HH-ALT"],"standings":[{"id":"HH-ALT","rank":1,"total":100,"movement":0,"points":100,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":20,"google":20},"totalsByDiscipline":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":20,"google":20},"monthWins":1,"isWinner":true,"medal":"gold"},{"id":"MS","rank":2,"total":90,"movement":0,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15},"totalsByDiscipline":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15},"monthWins":0,"isWinner":false,"medal":"silver"},{"id":"BI","rank":3,"total":55,"movement":0,"points":55,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":15,"google":10},"totalsByDiscipline":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":15,"google":10},"monthWins":0,"isWinner":false,"medal":null},{"id":"HH-DT","rank":4,"total":25,"movement":0,"points":25,"breakdown":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5},"totalsByDiscipline":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5},"monthWins":0,"isWinner":false,"medal":null},{"id":"HH-HBF","rank":5,"total":5,"movement":0,"points":5,"breakdown":{"produktivitaet":0,"bon":0,"mystery":0,"systemcheck":5,"google":0},"totalsByDiscipline":{"produktivitaet":0,"bon":0,"mystery":0,"systemcheck":5,"google":0},"monthWins":0,"isWinner":false,"medal":null}]},{"month":2,"monthName":"Februar","winners":["MS"],"standings":[{"id":"HH-ALT","rank":1,"total":170,"movement":0,"points":70,"breakdown":{"produktivitaet":5,"bon":5,"mystery":20,"systemcheck":20,"google":20},"totalsByDiscipline":{"produktivitaet":25,"bon":25,"mystery":40,"systemcheck":40,"google":40},"monthWins":1,"isWinner":false,"medal":"gold"},{"id":"MS","rank":2,"total":165,"movement":0,"points":75,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":15},"totalsByDiscipline":{"produktivitaet":35,"bon":35,"mystery":30,"systemcheck":35,"google":30},"monthWins":1,"isWinner":true,"medal":"silver"},{"id":"BI","rank":3,"total":125,"movement":0,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":10},"totalsByDiscipline":{"produktivitaet":25,"bon":25,"mystery":25,"systemcheck":30,"google":20},"monthWins":0,"isWinner":false,"medal":null},{"id":"HH-DT","rank":4,"total":65,"movement":0,"points":40,"breakdown":{"produktivitaet":10,"bon":10,"mystery":5,"systemcheck":10,"google":5},"totalsByDiscipline":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":10},"monthWins":0,"isWinner":false,"medal":null},{"id":"HH-HBF","rank":5,"total":30,"movement":0,"points":25,"breakdown":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":5,"google":5},"totalsByDiscipline":{"produktivitaet":5,"bon":5,"mystery":5,"systemcheck":10,"google":5},"monthWins":0,"isWinner":false,"medal":null}]},{"month":3,"monthName":"März","winners":["BI"],"standings":[{"id":"MS","rank":1,"total":250,"movement":1,"points":85,"breakdown":{"produktivitaet":20,"bon":15,"mystery":20,"systemcheck":15,"google":15},"totalsByDiscipline":{"produktivitaet":55,"bon":50,"mystery":50,"systemcheck":50,"google":45},"monthWins":1,"isWinner":false,"medal":"gold"},{"id":"HH-ALT","rank":2,"total":230,"movement":-1,"points":60,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":20},"totalsByDiscipline":{"produktivitaet":35,"bon":35,"mystery":50,"systemcheck":50,"google":60},"monthWins":1,"isWinner":false,"medal":"silver"},{"id":"BI","rank":3,"total":215,"movement":0,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":15},"totalsByDiscipline":{"produktivitaet":45,"bon":45,"mystery":40,"systemcheck":50,"google":35},"monthWins":1,"isWinner":true,"medal":null},{"id":"HH-DT","rank":4,"total":130,"movement":0,"points":65,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":10,"google":10},"totalsByDiscipline":{"produktivitaet":30,"bon":30,"mystery":25,"systemcheck":25,"google":20},"monthWins":0,"isWinner":false,"medal":null},{"id":"HH-HBF","rank":5,"total":70,"movement":0,"points":40,"breakdown":{"produktivitaet":10,"bon":10,"mystery":5,"systemcheck":10,"google":5},"totalsByDiscipline":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":20,"google":10},"monthWins":0,"isWinner":false,"medal":null}]},{"month":4,"monthName":"April","winners":["BI"],"standings":[{"id":"BI","rank":1,"total":310,"movement":2,"points":95,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":20,"google":15},"totalsByDiscipline":{"produktivitaet":65,"bon":65,"mystery":60,"systemcheck":70,"google":50},"monthWins":2,"isWinner":true,"medal":"gold"},{"id":"MS","rank":2,"total":305,"movement":-1,"points":55,"breakdown":{"produktivitaet":10,"bon":5,"mystery":20,"systemcheck":10,"google":10},"totalsByDiscipline":{"produktivitaet":65,"bon":55,"mystery":70,"systemcheck":60,"google":55},"monthWins":1,"isWinner":false,"medal":"silver"},{"id":"HH-ALT","rank":2,"total":305,"movement":0,"points":75,"breakdown":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":20},"totalsByDiscipline":{"produktivitaet":50,"bon":50,"mystery":60,"systemcheck":65,"google":80},"monthWins":1,"isWinner":false,"medal":"silver"},{"id":"HH-DT","rank":4,"total":200,"movement":0,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":15,"google":10},"totalsByDiscipline":{"produktivitaet":45,"bon":45,"mystery":40,"systemcheck":40,"google":30},"monthWins":0,"isWinner":false,"medal":null},{"id":"HH-HBF","rank":5,"total":115,"movement":0,"points":45,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":5},"totalsByDiscipline":{"produktivitaet":25,"bon":25,"mystery":20,"systemcheck":30,"google":15},"monthWins":0,"isWinner":false,"medal":null}]},{"month":5,"monthName":"Mai","winners":["BI","HH-ALT","HH-DT"],"standings":[{"id":"BI","rank":1,"total":400,"movement":0,"points":90,"breakdown":{"produktivitaet":20,"bon":15,"mystery":20,"systemcheck":20,"google":15},"totalsByDiscipline":{"produktivitaet":85,"bon":80,"mystery":80,"systemcheck":90,"google":65},"monthWins":3,"isWinner":true,"medal":"gold"},{"id":"HH-ALT","rank":2,"total":395,"movement":0,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":15,"google":20},"totalsByDiscipline":{"produktivitaet":70,"bon":70,"mystery":75,"systemcheck":80,"google":100},"monthWins":2,"isWinner":true,"medal":"silver"},{"id":"MS","rank":3,"total":355,"movement":-1,"points":50,"breakdown":{"produktivitaet":10,"bon":10,"mystery":10,"systemcheck":10,"google":10},"totalsByDiscipline":{"produktivitaet":75,"bon":65,"mystery":80,"systemcheck":70,"google":65},"monthWins":1,"isWinner":false,"medal":null},{"id":"HH-DT","rank":4,"total":290,"movement":0,"points":90,"breakdown":{"produktivitaet":20,"bon":20,"mystery":20,"systemcheck":15,"google":15},"totalsByDiscipline":{"produktivitaet":65,"bon":65,"mystery":60,"systemcheck":55,"google":45},"monthWins":1,"isWinner":true,"medal":null},{"id":"HH-HBF","rank":5,"total":180,"movement":0,"points":65,"breakdown":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":10},"totalsByDiscipline":{"produktivitaet":40,"bon":40,"mystery":30,"systemcheck":45,"google":25},"monthWins":0,"isWinner":false,"medal":null}]},{"month":6,"monthName":"Juni","winners":["HH-ALT"],"standings":[{"id":"HH-ALT","rank":1,"total":490,"movement":1,"points":95,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":20,"google":20},"totalsByDiscipline":{"produktivitaet":90,"bon":90,"mystery":90,"systemcheck":100,"google":120},"monthWins":3,"isWinner":true,"medal":"gold"},{"id":"BI","rank":2,"total":480,"movement":-1,"points":80,"breakdown":{"produktivitaet":15,"bon":15,"mystery":15,"systemcheck":20,"google":15},"totalsByDiscipline":{"produktivitaet":100,"bon":95,"mystery":95,"systemcheck":110,"google":80},"monthWins":3,"isWinner":false,"medal":"silver"},{"id":"MS","rank":3,"total":425,"movement":0,"points":70,"breakdown":{"produktivitaet":15,"bon":15,"mystery":10,"systemcheck":15,"google":15},"totalsByDiscipline":{"produktivitaet":90,"bon":80,"mystery":90,"systemcheck":85,"google":80},"monthWins":1,"isWinner":false,"medal":null},{"id":"HH-DT","rank":4,"total":365,"movement":0,"points":75,"breakdown":{"produktivitaet":15,"bon":10,"mystery":20,"systemcheck":15,"google":15},"totalsByDiscipline":{"produktivitaet":80,"bon":75,"mystery":80,"systemcheck":70,"google":60},"monthWins":1,"isWinner":false,"medal":null},{"id":"HH-HBF","rank":5,"total":260,"movement":0,"points":80,"breakdown":{"produktivitaet":20,"bon":20,"mystery":15,"systemcheck":15,"google":10},"totalsByDiscipline":{"produktivitaet":60,"bon":60,"mystery":45,"systemcheck":60,"google":35},"monthWins":0,"isWinner":false,"medal":null}]}],"season":"2027","logoUrl":"","tips":{"produktivitaet":"Schichten eng am Gästeaufkommen planen und Leerlauf für Vorbereitung nutzen.","bon":"Getränk oder Topping aktiv anbieten – jede Ergänzung zählt.","mystery":"Freundliche Begrüßung, saubere Theke, Standards jeden Tag gleich leben.","systemcheck":"Checklisten täglich abarbeiten, Hygiene und Dokumentation lückenlos halten.","google":"Zufriedene Gäste freundlich um eine Bewertung bitten."},"infos":{"produktivitaet":"Umsatz pro geleisteter Arbeitsstunde im Monat (IST-Wert in €/Std.). Je besser Personaleinsatz und Gästeaufkommen zusammenpassen, desto höher der Wert.","bon":"Durchschnittlicher Umsatz pro Kassenbon im Monat (IST-Wert in €).","mystery":"Ergebnis des Mystery Checks in Prozent: Ein anonymer Testgast bewertet Service, Sauberkeit und Standards. Gibt es in einem Monat keinen Check, zählt das letzte Ergebnis weiter.","systemcheck":"Ergebnis des Systemchecks in Prozent: Standards, Hygiene und Dokumentation werden vor Ort geprüft. Gibt es in einem Monat keinen Check, zählt das letzte Ergebnis weiter.","google":"Durchschnittliche Google-Bewertung des Standorts am letzten Tag des Monats. Unter 4,6 Sternen gibt es keine Punkte."},"prizes":null} } : { ok: false }); }, 250); }
   };
   return api;
 })() } };
@@ -327,10 +418,21 @@ window.google = { script: { run: (function () {
         : '<span class="logo" aria-hidden="true">' + esc(initials(team.name)) + '</span>';
     }
 
+    var MONTHS_SHORT = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    var state = { league: null, byId: {}, selected: 0, highlight: null };
+
     function movement(team) {
       if (team.movement > 0) return '<span class="move-up">▲ ' + team.movement + (team.movement === 1 ? ' Platz' : ' Plätze') + '</span>';
       if (team.movement < 0) return '<span class="move-down">▼ ' + Math.abs(team.movement) + (team.movement === -1 ? ' Platz' : ' Plätze') + '</span>';
       return '';
+    }
+
+    function joinNames(names) {
+      return names.length > 1 ? names.slice(0, -1).join(', ') + ' und ' + names[names.length - 1] : names[0];
+    }
+
+    function selectedDay() {
+      return state.selected > 0 ? state.league.matchdays[state.selected - 1] : null;
     }
 
     function renderHeader(league) {
@@ -338,51 +440,88 @@ window.google = { script: { run: (function () {
       if (league.logoUrl) {
         $('brand').innerHTML = '<img src="' + esc(league.logoUrl) + '" alt="LIPPTASTE">';
       }
-      var current = league.currentMonth;
-      var bar = '';
-      for (var m = 1; m <= 12; m++) {
-        bar += '<li class="' + (m < current ? 'played' : m === current ? 'current' : '') + '"></li>';
-      }
-      var md = $('matchday');
-      md.hidden = false;
-      md.innerHTML = '<p>' + (current > 0
-          ? 'Spieltag ' + current + ' von 12 <span>' + esc(league.currentMonthName) + '</span>'
-          : 'Anpfiff im Januar ' + esc(league.season)) + '</p>' +
-        '<ol class="season-bar" aria-hidden="true">' + bar + '</ol>';
     }
 
-    function renderTable(league) {
-      var started = league.currentMonth > 0;
-      var leader = league.teams.length ? league.teams[0].total : 0;
-      var hasZone = started && league.teams.some(function (t) { return t.medal; }) &&
-        league.teams.some(function (t) { return !t.medal; });
-      $('table').innerHTML = league.teams.map(function (t, i) {
-        var next = league.teams[i + 1];
+    function renderMatchday() {
+      var league = state.league;
+      var current = league.currentMonth;
+      var day = selectedDay();
+      var bar = '';
+      for (var m = 1; m <= 12; m++) {
+        var played = m <= current;
+        bar += '<li><button type="button" data-month="' + m + '" class="' + (played ? 'played' : '') + (m === current ? ' current' : '') + '"' +
+          (played
+            ? ' aria-pressed="' + (m === state.selected) + '" aria-label="Spieltag ' + m + ', ' + esc(league.matchdays[m - 1].monthName) + '"'
+            : ' disabled aria-label="Spieltag ' + m + ', noch nicht gespielt"') +
+          '><b>' + m + '</b><small>' + MONTHS_SHORT[m - 1] + '</small></button></li>';
+      }
+
+      var result = '';
+      if (day) {
+        var winners = day.standings.filter(function (s) { return s.isWinner; });
+        result = winners.length
+          ? '👑 ' + esc(joinNames(winners.map(function (s) { return state.byId[s.id].name; }))) +
+            (winners.length > 1 ? ' gewinnen' : ' gewinnt') + ' den Spieltag mit ' + (winners.length > 1 ? 'je ' : '') + winners[0].points + ' Punkten'
+          : 'An diesem Spieltag hat noch niemand gepunktet.';
+      }
+
+      var md = $('matchday');
+      md.hidden = false;
+      md.innerHTML = '<p>' + (day
+          ? 'Spieltag ' + state.selected + ' von 12 <span>' + esc(day.monthName) + '</span>' +
+            (state.selected !== current ? '<button type="button" class="to-current" data-month="' + current + '">Zu Spieltag ' + current + ' →</button>' : '')
+          : 'Anpfiff im Januar ' + esc(league.season)) + '</p>' +
+        '<ol class="season-bar" aria-label="Spieltag wählen">' + bar + '</ol>' +
+        (result ? '<p class="matchday-result" aria-live="polite">' + result + '</p>' : '');
+    }
+
+    function selectMatchday(m) {
+      if (m === state.selected || m < 1 || m > state.league.currentMonth) return;
+      state.selected = m;
+      renderMatchday();
+      renderTable();
+      renderChart();
+      var btn = document.querySelector('.season-bar button[data-month="' + m + '"]');
+      if (btn) btn.focus();
+    }
+
+    function renderTable() {
+      var league = state.league;
+      var day = selectedDay();
+      var rows = day ? day.standings : league.teams;
+      var leader = rows.length ? rows[0].total : 0;
+      var hasZone = day && rows.some(function (t) { return t.medal; }) && rows.some(function (t) { return !t.medal; });
+
+      $('table').innerHTML = rows.map(function (t, i) {
+        var team = state.byId[t.id];
+        var next = rows[i + 1];
         var zone = hasZone && t.medal && next && !next.medal
           ? '<li class="zone" aria-hidden="true">Prämienzone</li>'
           : '';
-        var gap = started && t.total < leader ? '<small>−' + (leader - t.total) + '</small>' : '';
-        var width = started && leader > 0 ? Math.round((t.total / leader) * 100) : 0;
+        var gap = day && t.total < leader ? '<small>−' + (leader - t.total) + '</small>' : '';
+        var width = day && leader > 0 ? Math.round((t.total / leader) * 100) : 0;
         var meta = [];
-        if (started) meta.push('+' + t.currentMonthPoints + ' im ' + esc(league.currentMonthName));
-        if (t.isCurrentMonthWinner) meta.push('<span class="move-up">Spieltagssieger</span>');
+        if (day) meta.push('+' + t.points + ' im ' + esc(day.monthName));
+        if (day && t.isWinner) meta.push('<span class="move-up">Spieltagssieger</span>');
         if (t.monthWins > 0) meta.push('👑 ' + t.monthWins + '×');
-        var mv = movement(t);
+        var mv = day ? movement(t) : '';
         if (mv) meta.push(mv);
 
-        var breakdown = started
-          ? '<dl class="breakdown" id="bd-' + i + '" hidden>' + league.disciplines.map(function (d) {
-              return '<dt>' + esc(d.label) + '</dt><dd>' + t.totalsByDiscipline[d.key] + '</dd>';
-            }).join('') + '</dl>'
+        var breakdown = day
+          ? '<table class="breakdown" id="bd-' + i + '" hidden><thead><tr><th scope="col"><span class="visually-hidden">Disziplin</span></th>' +
+              '<th scope="col">' + esc(day.monthName) + '</th><th scope="col">Gesamt</th></tr></thead><tbody>' +
+              league.disciplines.map(function (d) {
+                return '<tr><th scope="row">' + esc(d.label) + '</th><td>' + t.breakdown[d.key] + '</td><td>' + t.totalsByDiscipline[d.key] + '</td></tr>';
+              }).join('') + '</tbody></table>'
           : '';
 
         return '<li class="row' + (t.medal ? ' ' + t.medal : '') + '" style="--i:' + i + '">' +
-          '<button class="row-button" type="button"' + (started ? ' aria-expanded="false" aria-controls="bd-' + i + '"' : ' disabled') + '>' +
-            (started
+          '<button class="row-button" type="button"' + (day ? ' aria-expanded="false" aria-controls="bd-' + i + '"' : ' disabled') + '>' +
+            (day
               ? '<span class="rank" aria-label="Platz ' + t.rank + '">' + t.rank + '</span>'
               : '<span class="rank" aria-hidden="true">–</span>') +
-            logo(t) +
-            '<span class="team"><span class="team-name">' + esc(t.name) + '</span>' +
+            logo(team) +
+            '<span class="team"><span class="team-name">' + esc(team.name) + '</span>' +
               (meta.length ? '<span class="team-meta">' + meta.map(function (m) { return '<span>' + m + '</span>'; }).join('') + '</span>' : '') +
             '</span>' +
             '<span class="points"><strong>' + t.total + '</strong>' + gap + '</span>' +
@@ -391,18 +530,12 @@ window.google = { script: { run: (function () {
           '</li>' + zone;
       }).join('');
 
-      $('legend').textContent = started
-        ? 'Tippe auf einen Standort, um zu sehen, aus welchen Disziplinen die Punkte kommen.'
+      $('legend').textContent = day
+        ? 'Stand nach Spieltag ' + state.selected + '. Tippe auf einen Standort, um zu sehen, aus welchen Disziplinen die Punkte kommen.'
         : 'Ab Januar sammelt jeder Standort jeden Monat Punkte. Platz 1 und 2 gewinnen.';
 
-      Array.prototype.forEach.call(document.querySelectorAll('.row-button[aria-controls]'), function (btn) {
-        btn.addEventListener('click', function () {
-          var open = btn.getAttribute('aria-expanded') === 'true';
-          btn.setAttribute('aria-expanded', String(!open));
-          $(btn.getAttribute('aria-controls')).hidden = open;
-        });
-      });
-
+      $('table').classList.remove('reveal');
+      void $('table').offsetWidth;
       $('table').classList.add('reveal');
     }
 
@@ -419,23 +552,130 @@ window.google = { script: { run: (function () {
 
     function renderRules(league) {
       $('rules').innerHTML = league.disciplines.map(function (d) {
-        var tiers = d.tiers.map(function (t) {
-          return '<li><b>' + t.points + '</b>ab ' + fmt(t.min) + (d.unit === '%' ? ' %' : d.unit === 'Sterne' ? ' ★' : ' €') + '</li>';
+        var tiers = d.tiers.map(function (t, i) {
+          return '<li class="tier-' + (i + 1) + '"><b>' + t.points + '</b>ab ' + fmt(t.min) + (d.unit === '%' ? ' %' : d.unit === 'Sterne' ? ' ★' : ' €') + '</li>';
         }).join('');
         var tip = league.tips && league.tips[d.key];
-        return '<article class="rule"><h3>' + esc(d.label) + '</h3><ul class="tiers" aria-label="Punkte-Stufen">' + tiers + '</ul>' +
+        var info = league.infos && league.infos[d.key];
+        return '<article class="rule"><div class="rule-head"><h3>' + esc(d.label) + '</h3>' +
+          (info ? '<button type="button" class="info" aria-expanded="false" aria-controls="info-' + d.key + '" aria-label="Was zählt bei ' + esc(d.label) + '?">i</button>' : '') +
+          '</div>' +
+          (info ? '<p class="explain" id="info-' + d.key + '" hidden>' + esc(info) + '</p>' : '') +
+          '<ul class="tiers" aria-label="Punkte-Stufen">' + tiers + '</ul>' +
           (tip ? '<p>' + esc(tip) + '</p>' : '') + '</article>';
       }).join('');
     }
 
+    function renderChart() {
+      var league = state.league;
+      var el = $('chart');
+      var current = league.currentMonth;
+      if (!current) {
+        el.innerHTML = '<p class="teaser">Der Verlauf startet nach dem ersten Spieltag.</p>';
+        return;
+      }
+
+      var n = league.teamOrder.length;
+      var w = Math.max(260, el.clientWidth || 340);
+      var pad = { l: 34, r: 18, t: 16, b: 46 };
+      var rowH = 40;
+      var h = pad.t + pad.b + rowH * (n - 1);
+      // Die x-Achse zeigt nur gespielte Spieltage und wächst mit der Saison.
+      var plotW = w - pad.l - pad.r;
+      var colW = current > 1 ? plotW / (current - 1) : plotW;
+      var bandW = Math.min(colW, 40);
+      var x = function (m) { return current > 1 ? pad.l + (m - 1) * colW : pad.l + plotW / 2; };
+      var y = function (pos) { return pad.t + pos * rowH; };
+
+      // Position je Spieltag: Reihenfolge der Tabelle, Gleichstand nach Gründung.
+      var pos = league.matchdays.map(function (day) {
+        var map = {};
+        day.standings.forEach(function (s, i) { map[s.id] = { pos: i, s: s }; });
+        return map;
+      });
+
+      var svg = '';
+      if (state.selected) {
+        svg += '<rect class="sel-band" x="' + (x(state.selected) - bandW / 2) + '" y="0" width="' + bandW + '" height="' + (h - pad.b + 24) + '"/>';
+      }
+      for (var p = 0; p < n; p++) {
+        svg += '<line class="grid" x1="' + (pad.l - 14) + '" x2="' + (w - 2) + '" y1="' + y(p) + '" y2="' + y(p) + '"/>' +
+          '<text class="axis" x="4" y="' + (y(p) + 4) + '">' + (p + 1) + '.</text>';
+      }
+      for (var m = 1; m <= current; m++) {
+        svg += '<text class="axis month' + (m === state.selected ? ' selected' : '') + '" x="' + x(m) + '" y="' + (h - pad.b + 20) + '" text-anchor="middle">' + m + '</text>' +
+          '<rect class="col-hit" data-month="' + m + '" x="' + (x(m) - colW / 2) + '" y="0" width="' + colW + '" height="' + h + '"><title>Spieltag ' + m + ' anzeigen</title></rect>';
+      }
+      svg += '<text class="axis" x="' + (pad.l + plotW / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Spieltag</text>';
+
+      var order = league.teamOrder.slice().sort(function (a, b) {
+        return (a === state.highlight) - (b === state.highlight);
+      });
+      order.forEach(function (id) {
+        var cls = state.highlight ? (id === state.highlight ? ' is-hl' : ' is-dim') : '';
+        var d = '';
+        for (var m = 1; m <= current; m++) d += (m === 1 ? 'M' : 'L') + x(m) + ' ' + y(pos[m - 1][id].pos);
+        svg += '<g class="series' + cls + '"><path d="' + d + '"/>';
+        for (var m2 = 1; m2 < current; m2++) {
+          svg += '<circle class="dot" cx="' + x(m2) + '" cy="' + y(pos[m2 - 1][id].pos) + '" r="4"/>';
+        }
+        var last = pos[current - 1][id];
+        svg += '<circle class="end' + (last.s.medal ? ' ' + last.s.medal : '') + '" cx="' + x(current) + '" cy="' + y(last.pos) + '" r="13"/>' +
+          '<text class="end-label" x="' + x(current) + '" y="' + (y(last.pos) + 4) + '" text-anchor="middle">' + esc(initials(state.byId[id].name)) + '</text></g>';
+      });
+      league.teamOrder.forEach(function (id) {
+        for (var m = 1; m <= current; m++) {
+          svg += '<circle class="pt-hit" data-id="' + esc(id) + '" data-month="' + m + '" cx="' + x(m) + '" cy="' + y(pos[m - 1][id].pos) + '" r="15"/>';
+        }
+      });
+
+      var legend = league.teamOrder.map(function (id) {
+        return '<li><button type="button" data-id="' + esc(id) + '" aria-pressed="' + (id === state.highlight) + '">' +
+          '<span class="chip" aria-hidden="true">' + esc(initials(state.byId[id].name)) + '</span>' + esc(state.byId[id].name) + '</button></li>';
+      }).join('');
+
+      el.innerHTML = '<div class="chart-plot"><svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" role="img" ' +
+        'aria-label="Platzierung aller Standorte nach jedem Spieltag. Die Tabelle darunter enthält dieselben Daten.">' + svg + '</svg>' +
+        '<div class="chart-tip" id="chart-tip" hidden></div></div>' +
+        '<ul class="chart-legend" aria-label="Standort hervorheben">' + legend + '</ul>';
+    }
+
+    function showTip(target) {
+      var tip = $('chart-tip');
+      if (!tip) return;
+      var id = target.getAttribute('data-id');
+      var m = Number(target.getAttribute('data-month'));
+      var s = state.league.matchdays[m - 1].standings.filter(function (x) { return x.id === id; })[0];
+      tip.innerHTML = '<b>' + esc(state.byId[id].name) + '</b><span>nach Spieltag ' + m + ' (' + esc(state.league.matchdays[m - 1].monthName) + ')</span>' +
+        '<span>Platz ' + s.rank + ' · ' + s.total + ' Pkt. (+' + s.points + ')</span>';
+      tip.hidden = false;
+      var plot = tip.parentNode;
+      var cx = Number(target.getAttribute('cx'));
+      var cy = Number(target.getAttribute('cy'));
+      var left = Math.min(Math.max(cx - tip.offsetWidth / 2, 0), plot.clientWidth - tip.offsetWidth);
+      var top = cy - tip.offsetHeight - 18;
+      tip.style.left = left + 'px';
+      tip.style.top = (top < 0 ? cy + 18 : top) + 'px';
+    }
+
+    function hideTip() {
+      var tip = $('chart-tip');
+      if (tip) tip.hidden = true;
+    }
+
+    function toggleHighlight(id) {
+      state.highlight = state.highlight === id ? null : id;
+      renderChart();
+    }
+
     function renderHistory(league) {
-      var months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-      var best = months.map(function (_, m) {
+      var best = MONTHS_SHORT.map(function (_, m) {
         return Math.max.apply(null, league.teams.map(function (t) { return t.months[m] ? t.months[m].points : -1; }));
       });
-      var head = '<thead><tr><th scope="col">Standort</th>' + months.map(function (m) { return '<th scope="col">' + m + '</th>'; }).join('') + '</tr></thead>';
-      var body = '<tbody>' + league.teams.map(function (t) {
-        return '<tr><th scope="row">' + esc(t.name) + '</th>' + months.map(function (_, m) {
+      var head = '<thead><tr><th scope="col">Standort</th>' + MONTHS_SHORT.map(function (m) { return '<th scope="col">' + m + '</th>'; }).join('') + '</tr></thead>';
+      var body = '<tbody>' + league.teamOrder.map(function (id) {
+        var t = state.byId[id];
+        return '<tr><th scope="row">' + esc(t.name) + '</th>' + MONTHS_SHORT.map(function (_, m) {
           var month = t.months[m];
           if (!month) return '<td class="empty">–</td>';
           return '<td' + (month.points === best[m] && month.points > 0 ? ' class="best"' : '') + '>' + month.points + '</td>';
@@ -445,13 +685,67 @@ window.google = { script: { run: (function () {
     }
 
     function render(league) {
+      state.league = league;
+      state.selected = league.currentMonth;
+      state.byId = {};
+      league.teams.forEach(function (t) { state.byId[t.id] = t; });
       renderHeader(league);
-      renderTable(league);
+      renderMatchday();
+      renderTable();
       renderPrizes(league);
       renderRules(league);
       renderHistory(league);
       $('league').hidden = false;
+      renderChart();
     }
+
+    $('matchday').addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-month]');
+      if (btn) selectMatchday(Number(btn.getAttribute('data-month')));
+    });
+
+    $('table').addEventListener('click', function (e) {
+      var btn = e.target.closest('.row-button[aria-controls]');
+      if (!btn) return;
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      $(btn.getAttribute('aria-controls')).hidden = open;
+    });
+
+    $('rules').addEventListener('click', function (e) {
+      var btn = e.target.closest('.info');
+      if (!btn) return;
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      $(btn.getAttribute('aria-controls')).hidden = open;
+    });
+
+    $('chart').addEventListener('click', function (e) {
+      var legendBtn = e.target.closest('.chart-legend button');
+      if (legendBtn) return toggleHighlight(legendBtn.getAttribute('data-id'));
+      var hit = e.target.closest('.pt-hit');
+      if (hit) {
+        var id = hit.getAttribute('data-id');
+        if (state.highlight !== id) toggleHighlight(id);
+        var again = document.querySelector('.pt-hit[data-id="' + id + '"][data-month="' + hit.getAttribute('data-month') + '"]');
+        if (again) showTip(again);
+        return;
+      }
+      var col = e.target.closest('.col-hit');
+      if (col) return selectMatchday(Number(col.getAttribute('data-month')));
+      hideTip();
+    });
+    $('chart').addEventListener('mouseover', function (e) {
+      var hit = e.target.closest('.pt-hit');
+      if (hit) showTip(hit);
+    });
+    $('chart').addEventListener('mouseleave', hideTip);
+
+    var resizeFrame = null;
+    window.addEventListener('resize', function () {
+      if (!state.league || resizeFrame) return;
+      resizeFrame = requestAnimationFrame(function () { resizeFrame = null; renderChart(); });
+    });
 
     function showLogin(failed) {
       $('status').hidden = true;
