@@ -254,6 +254,7 @@
   .chart-plot .month { fill: var(--ink); font-variant-numeric: tabular-nums; }
   .chart-plot .month.selected { font-weight: 800; }
   .chart-plot .sel-band { fill: var(--soft); }
+  .chart-plot .marker { cursor: pointer; }
   .chart-plot .col-hit { fill: transparent; cursor: pointer; }
   .chart-plot .pt-hit { fill: transparent; cursor: pointer; }
   .series path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
@@ -293,15 +294,6 @@
     display: grid; place-items: center;
     border: 2px solid var(--ink); font-size: 9px; font-weight: 800;
   }
-  .history-details { margin-top: 16px; }
-  .history-details summary { cursor: pointer; font-size: 14px; font-weight: 600; padding: 6px 0; }
-  .history-scroll { overflow-x: auto; border-top: 1px solid var(--ink); margin-top: 8px; }
-  .history { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
-  .history th, .history td { padding: 8px 6px; border-bottom: 1px solid var(--rule); text-align: center; white-space: nowrap; }
-  .history th:first-child { text-align: left; position: sticky; left: 0; background: var(--paper); font-weight: 700; }
-  .history thead th { color: var(--muted); font-weight: 400; }
-  .history td.best { font-weight: 800; }
-  .history td.empty { color: var(--rule); }
 
   /* Login */
   .login { margin-top: 40px; }
@@ -322,6 +314,7 @@
   @media (prefers-reduced-motion: no-preference) {
     .table.reveal .row { animation: rise 420ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 70ms); }
     @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .chart-plot .marker, .chart-plot .sel-band { transition: transform 450ms cubic-bezier(.2,.7,.2,1); }
   }
 </style>
 
@@ -371,12 +364,8 @@
 
         <section class="block" aria-labelledby="history-heading">
           <h2 id="history-heading">Saisonverlauf</h2>
-          <p class="lead">Wer stand nach welchem Spieltag auf welchem Platz? Tippe auf einen Standort, um seinen Weg hervorzuheben.</p>
+          <p class="lead">Wer stand nach welchem Spieltag auf welchem Platz? Tippe auf einen Spieltag oder einen Standort.</p>
           <div id="chart"></div>
-          <details class="history-details" id="history-details">
-            <summary>Punkte je Spieltag als Tabelle</summary>
-            <div class="history-scroll"><table class="history" id="history"></table></div>
-          </details>
         </section>
       </div>
     </main>
@@ -475,12 +464,13 @@ window.google = { script: { run: (function () {
         (result ? '<p class="matchday-result" aria-live="polite">' + result + '</p>' : '');
     }
 
-    function selectMatchday(m) {
+    function selectMatchday(m, fromHeader) {
       if (m === state.selected || m < 1 || m > state.league.currentMonth) return;
       state.selected = m;
       renderMatchday();
       renderTable();
-      renderChart();
+      updateChartSelection();
+      if (!fromHeader) return;
       var btn = document.querySelector('.season-bar button[data-month="' + m + '"]');
       if (btn) btn.focus();
     }
@@ -594,16 +584,13 @@ window.google = { script: { run: (function () {
         return map;
       });
 
-      var svg = '';
-      if (state.selected) {
-        svg += '<rect class="sel-band" x="' + (x(state.selected) - bandW / 2) + '" y="0" width="' + bandW + '" height="' + (h - pad.b + 24) + '"/>';
-      }
+      var svg = '<rect class="sel-band" x="' + (-bandW / 2) + '" y="0" width="' + bandW + '" height="' + (h - pad.b + 24) + '"/>';
       for (var p = 0; p < n; p++) {
         svg += '<line class="grid" x1="' + (pad.l - 14) + '" x2="' + (w - 2) + '" y1="' + y(p) + '" y2="' + y(p) + '"/>' +
           '<text class="axis" x="4" y="' + (y(p) + 4) + '">' + (p + 1) + '.</text>';
       }
       for (var m = 1; m <= current; m++) {
-        svg += '<text class="axis month' + (m === state.selected ? ' selected' : '') + '" x="' + x(m) + '" y="' + (h - pad.b + 20) + '" text-anchor="middle">' + m + '</text>' +
+        svg += '<text class="axis month" data-month="' + m + '" x="' + x(m) + '" y="' + (h - pad.b + 20) + '" text-anchor="middle">' + m + '</text>' +
           '<rect class="col-hit" data-month="' + m + '" x="' + (x(m) - colW / 2) + '" y="0" width="' + colW + '" height="' + h + '"><title>Spieltag ' + m + ' anzeigen</title></rect>';
       }
       svg += '<text class="axis" x="' + (pad.l + plotW / 2) + '" y="' + (h - 4) + '" text-anchor="middle">Spieltag</text>';
@@ -616,17 +603,21 @@ window.google = { script: { run: (function () {
         var d = '';
         for (var m = 1; m <= current; m++) d += (m === 1 ? 'M' : 'L') + x(m) + ' ' + y(pos[m - 1][id].pos);
         svg += '<g class="series' + cls + '"><path d="' + d + '"/>';
-        for (var m2 = 1; m2 < current; m2++) {
+        for (var m2 = 1; m2 <= current; m2++) {
           svg += '<circle class="dot" cx="' + x(m2) + '" cy="' + y(pos[m2 - 1][id].pos) + '" r="4"/>';
         }
-        var last = pos[current - 1][id];
-        svg += '<circle class="end' + (last.s.medal ? ' ' + last.s.medal : '') + '" cx="' + x(current) + '" cy="' + y(last.pos) + '" r="13"/>' +
-          '<text class="end-label" x="' + x(current) + '" y="' + (y(last.pos) + 4) + '" text-anchor="middle">' + esc(initials(state.byId[id].name)) + '</text></g>';
+        svg += '</g>';
       });
       league.teamOrder.forEach(function (id) {
         for (var m = 1; m <= current; m++) {
           svg += '<circle class="pt-hit" data-id="' + esc(id) + '" data-month="' + m + '" cx="' + x(m) + '" cy="' + y(pos[m - 1][id].pos) + '" r="15"/>';
         }
+      });
+      // Marker mit Kürzel: stehen am gewählten Spieltag und wandern beim Wechsel mit.
+      order.forEach(function (id) {
+        var cls = state.highlight ? (id === state.highlight ? ' is-hl' : ' is-dim') : '';
+        svg += '<g class="series' + cls + '"><g class="marker" data-id="' + esc(id) + '">' +
+          '<circle class="end" r="13"/><text class="end-label" y="4" text-anchor="middle">' + esc(initials(state.byId[id].name)) + '</text></g></g>';
       });
 
       var legend = league.teamOrder.map(function (id) {
@@ -635,9 +626,35 @@ window.google = { script: { run: (function () {
       }).join('');
 
       el.innerHTML = '<div class="chart-plot"><svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" role="img" ' +
-        'aria-label="Platzierung aller Standorte nach jedem Spieltag. Die Tabelle darunter enthält dieselben Daten.">' + svg + '</svg>' +
+        'aria-label="Platzierung aller Standorte nach jedem Spieltag.">' + svg + '</svg>' +
         '<div class="chart-tip" id="chart-tip" hidden></div></div>' +
         '<ul class="chart-legend" aria-label="Standort hervorheben">' + legend + '</ul>';
+
+      state.chart = { x: x, y: y, pos: pos };
+      placeChartSelection();
+    }
+
+    function placeChartSelection() {
+      var c = state.chart;
+      var m = state.selected;
+      var band = document.querySelector('#chart .sel-band');
+      if (band) band.style.transform = 'translateX(' + c.x(m) + 'px)';
+      Array.prototype.forEach.call(document.querySelectorAll('#chart .month'), function (label) {
+        label.classList.toggle('selected', Number(label.getAttribute('data-month')) === m);
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('#chart .marker'), function (marker) {
+        var p = c.pos[m - 1][marker.getAttribute('data-id')];
+        marker.style.transform = 'translate(' + c.x(m) + 'px, ' + c.y(p.pos) + 'px)';
+        marker.firstChild.setAttribute('class', 'end' + (p.s.medal ? ' ' + p.s.medal : ''));
+      });
+    }
+
+    function updateChartSelection() {
+      if (!state.chart || !document.querySelector('#chart .marker')) return renderChart();
+      hideTip();
+      // Startposition erst rendern lassen, sonst springt der Marker ohne Animation.
+      document.querySelector('#chart svg').getBoundingClientRect();
+      placeChartSelection();
     }
 
     function showTip(target) {
@@ -668,22 +685,6 @@ window.google = { script: { run: (function () {
       renderChart();
     }
 
-    function renderHistory(league) {
-      var best = MONTHS_SHORT.map(function (_, m) {
-        return Math.max.apply(null, league.teams.map(function (t) { return t.months[m] ? t.months[m].points : -1; }));
-      });
-      var head = '<thead><tr><th scope="col">Standort</th>' + MONTHS_SHORT.map(function (m) { return '<th scope="col">' + m + '</th>'; }).join('') + '</tr></thead>';
-      var body = '<tbody>' + league.teamOrder.map(function (id) {
-        var t = state.byId[id];
-        return '<tr><th scope="row">' + esc(t.name) + '</th>' + MONTHS_SHORT.map(function (_, m) {
-          var month = t.months[m];
-          if (!month) return '<td class="empty">–</td>';
-          return '<td' + (month.points === best[m] && month.points > 0 ? ' class="best"' : '') + '>' + month.points + '</td>';
-        }).join('') + '</tr>';
-      }).join('') + '</tbody>';
-      $('history').innerHTML = head + body;
-    }
-
     function render(league) {
       state.league = league;
       state.selected = league.currentMonth;
@@ -694,14 +695,13 @@ window.google = { script: { run: (function () {
       renderTable();
       renderPrizes(league);
       renderRules(league);
-      renderHistory(league);
       $('league').hidden = false;
       renderChart();
     }
 
     $('matchday').addEventListener('click', function (e) {
       var btn = e.target.closest('button[data-month]');
-      if (btn) selectMatchday(Number(btn.getAttribute('data-month')));
+      if (btn) selectMatchday(Number(btn.getAttribute('data-month')), true);
     });
 
     $('table').addEventListener('click', function (e) {
@@ -724,10 +724,14 @@ window.google = { script: { run: (function () {
       var legendBtn = e.target.closest('.chart-legend button');
       if (legendBtn) return toggleHighlight(legendBtn.getAttribute('data-id'));
       var hit = e.target.closest('.pt-hit');
+      var marker = e.target.closest('.marker');
+      if (marker) return toggleHighlight(marker.getAttribute('data-id'));
       if (hit) {
         var id = hit.getAttribute('data-id');
+        var m = Number(hit.getAttribute('data-month'));
         if (state.highlight !== id) toggleHighlight(id);
-        var again = document.querySelector('.pt-hit[data-id="' + id + '"][data-month="' + hit.getAttribute('data-month') + '"]');
+        selectMatchday(m);
+        var again = document.querySelector('.pt-hit[data-id="' + id + '"][data-month="' + m + '"]');
         if (again) showTip(again);
         return;
       }
