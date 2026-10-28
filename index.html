@@ -79,21 +79,24 @@
     background: none; border: 0; border-bottom: 1px solid currentColor;
     color: var(--paper); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
   }
-  .season-bar { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin: 0; padding: 0; list-style: none; }
+  .season-bar { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 0; padding: 0; list-style: none; }
   .season-bar button {
-    width: 100%; height: 44px; padding: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+    width: 100%; height: 28px; padding: 0;
     background: transparent; color: rgba(255, 255, 255, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 0;
-    font: inherit; line-height: 1;
+    font: inherit; font-size: 13px; font-weight: 800; font-stretch: 75%; line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
-  .season-bar button b { font-size: 15px; font-weight: 800; font-stretch: 75%; font-variant-numeric: tabular-nums; }
-  .season-bar button small { margin-top: 3px; font-size: 9px; }
+  .season-bar button.played::after { content: ''; position: absolute; inset: -6px -1px; }
   .season-bar button.played { background: rgba(255, 255, 255, 0.16); border-color: transparent; color: var(--paper); cursor: pointer; }
   .season-bar button.current { box-shadow: inset 0 -3px 0 var(--gold); }
   .season-bar button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
   .season-bar button:focus-visible, .matchday .to-current:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .matchday-result { margin: 12px 0 0; font-size: 15px; font-weight: 600; }
+  .rose { display: inline-block; width: 1.05em; height: 1.05em; margin-right: 0.3em; vertical-align: -0.15em; }
+  .wins { white-space: nowrap; }
+  .wins .rose { margin-right: 0.2em; color: var(--ink); }
 
   /* Abschnitte */
   .block { margin-top: 40px; }
@@ -235,6 +238,8 @@
   .info:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   .info-inline { width: 18px; height: 18px; font-size: 11px; border-width: 1.5px; vertical-align: 1px; }
   .rule .explain { margin: 8px 0 0; padding: 10px 12px; background: var(--soft); color: var(--ink); font-size: 14px; }
+  .rule .explain p { margin: 0; color: inherit; font-size: inherit; }
+  .rule .explain p + p { margin-top: 8px; }
   .explain[hidden] { display: none; }
   .tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0; padding: 0; list-style: none; }
   .tiers li { padding: 6px 4px; text-align: center; font-size: 13px; line-height: 1.2; }
@@ -254,7 +259,7 @@
   .chart-plot .month { fill: var(--ink); font-variant-numeric: tabular-nums; }
   .chart-plot .month.selected { font-weight: 800; }
   .chart-plot .sel-band { fill: var(--soft); }
-  .chart-plot .marker { cursor: pointer; }
+  .chart-plot .marker { pointer-events: none; }
   .chart-plot .col-hit { fill: transparent; cursor: pointer; }
   .chart-plot .pt-hit { fill: transparent; cursor: pointer; }
   .series path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
@@ -358,7 +363,7 @@
 
         <section class="block" aria-labelledby="rules-heading">
           <h2 id="rules-heading">So holt ihr Punkte</h2>
-          <p class="lead">Jeden Monat gibt es bis zu 100 Punkte: höchstens 20 pro Disziplin. Tippe <span class="nowrap">auf <span class="info-inline" aria-hidden="true">i</span>,</span> um zu sehen, was gemessen wird.</p>
+          <p class="lead">Jeden Monat gibt es bis zu 100 Punkte: höchstens 20 pro Disziplin. Tippe <span class="nowrap">auf <span class="info-inline" aria-hidden="true">i</span>,</span> um zu sehen, was gemessen wird und wie ihr den Wert verbessert.</p>
           <div id="rules"></div>
         </section>
 
@@ -407,7 +412,14 @@ window.google = { script: { run: (function () {
         : '<span class="logo" aria-hidden="true">' + esc(initials(team.name)) + '</span>';
     }
 
-    var MONTHS_SHORT = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    // Rose aus dem LIPPTASTE-Logo, Auszeichnung für den Spieltagssieger.
+    var ROSE = (function () {
+      var petal = '<path d="M-7.5 -12.4A14.5 14.5 0 0 1 7.5 -12.4Q16 -20 17.5 -38Q21 -46 13 -48.5L-13 -48.5Q-21 -46 -17.5 -38Q-16 -20 -7.5 -12.4Z"';
+      var petals = '';
+      for (var i = 0; i < 5; i++) petals += petal + ' transform="rotate(' + i * 72 + ')"/>';
+      return '<svg class="rose" viewBox="-50 -50 100 100" aria-hidden="true" focusable="false"><g fill="currentColor">' + petals +
+        '<path fill-rule="evenodd" d="M0 -11A11 11 0 1 1 0 11A11 11 0 1 1 0 -11ZM0 -6.5A6.5 6.5 0 1 0 0 6.5A6.5 6.5 0 1 0 0 -6.5Z"/></g></svg>';
+    })();
     var state = { league: null, byId: {}, selected: 0, highlight: null };
 
     function movement(team) {
@@ -442,14 +454,14 @@ window.google = { script: { run: (function () {
           (played
             ? ' aria-pressed="' + (m === state.selected) + '" aria-label="Spieltag ' + m + ', ' + esc(league.matchdays[m - 1].monthName) + '"'
             : ' disabled aria-label="Spieltag ' + m + ', noch nicht gespielt"') +
-          '><b>' + m + '</b><small>' + MONTHS_SHORT[m - 1] + '</small></button></li>';
+          '>' + m + '</button></li>';
       }
 
       var result = '';
       if (day) {
         var winners = day.standings.filter(function (s) { return s.isWinner; });
         result = winners.length
-          ? '👑 ' + esc(joinNames(winners.map(function (s) { return state.byId[s.id].name; }))) +
+          ? ROSE + esc(joinNames(winners.map(function (s) { return state.byId[s.id].name; }))) +
             (winners.length > 1 ? ' gewinnen' : ' gewinnt') + ' den Spieltag mit ' + (winners.length > 1 ? 'je ' : '') + winners[0].points + ' Punkten'
           : 'An diesem Spieltag hat noch niemand gepunktet.';
       }
@@ -493,7 +505,7 @@ window.google = { script: { run: (function () {
         var meta = [];
         if (day) meta.push('+' + t.points + ' im ' + esc(day.monthName));
         if (day && t.isWinner) meta.push('<span class="move-up">Spieltagssieger</span>');
-        if (t.monthWins > 0) meta.push('👑 ' + t.monthWins + '×');
+        if (t.monthWins > 0) meta.push('<span class="wins">' + ROSE + '<span class="visually-hidden">Spieltagssiege: </span>' + t.monthWins + '×</span>');
         var mv = day ? movement(t) : '';
         if (mv) meta.push(mv);
 
@@ -547,12 +559,13 @@ window.google = { script: { run: (function () {
         }).join('');
         var tip = league.tips && league.tips[d.key];
         var info = league.infos && league.infos[d.key];
+        var explain = (info ? '<p>' + esc(info) + '</p>' : '') +
+          (tip ? '<p><b>Das könnt ihr tun:</b>' + esc(tip) + '</p>' : '');
         return '<article class="rule"><div class="rule-head"><h3>' + esc(d.label) + '</h3>' +
-          (info ? '<button type="button" class="info" aria-expanded="false" aria-controls="info-' + d.key + '" aria-label="Was zählt bei ' + esc(d.label) + '?">i</button>' : '') +
+          (explain ? '<button type="button" class="info" aria-expanded="false" aria-controls="info-' + d.key + '" aria-label="Was zählt bei ' + esc(d.label) + '?">i</button>' : '') +
           '</div>' +
-          (info ? '<p class="explain" id="info-' + d.key + '" hidden>' + esc(info) + '</p>' : '') +
-          '<ul class="tiers" aria-label="Punkte-Stufen">' + tiers + '</ul>' +
-          (tip ? '<p>' + esc(tip) + '</p>' : '') + '</article>';
+          (explain ? '<div class="explain" id="info-' + d.key + '" hidden>' + explain + '</div>' : '') +
+          '<ul class="tiers" aria-label="Punkte-Stufen">' + tiers + '</ul></article>';
       }).join('');
     }
 
@@ -724,12 +737,9 @@ window.google = { script: { run: (function () {
       var legendBtn = e.target.closest('.chart-legend button');
       if (legendBtn) return toggleHighlight(legendBtn.getAttribute('data-id'));
       var hit = e.target.closest('.pt-hit');
-      var marker = e.target.closest('.marker');
-      if (marker) return toggleHighlight(marker.getAttribute('data-id'));
       if (hit) {
         var id = hit.getAttribute('data-id');
         var m = Number(hit.getAttribute('data-month'));
-        if (state.highlight !== id) toggleHighlight(id);
         selectMatchday(m);
         var again = document.querySelector('.pt-hit[data-id="' + id + '"][data-month="' + m + '"]');
         if (again) showTip(again);
